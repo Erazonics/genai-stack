@@ -1,18 +1,9 @@
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.embeddings import (
-    OllamaEmbeddings,
-    SentenceTransformerEmbeddings,
-    BedrockEmbeddings,
-)
+from langchain.embeddings import OllamaEmbeddings, OpenAIEmbeddings, SentenceTransformerEmbeddings, BedrockEmbeddings
 from langchain.chat_models import ChatOpenAI, ChatOllama, BedrockChat
 from langchain.vectorstores.neo4j_vector import Neo4jVector
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
-from langchain.prompts.chat import (
-    ChatPromptTemplate,
-    SystemMessagePromptTemplate,
-    HumanMessagePromptTemplate,
-)
+from langchain.prompts.chat import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 from typing import List, Any
 from utils import BaseLogger, extract_title_and_question
 
@@ -97,24 +88,14 @@ def configure_llm_only_chain(llm):
 
 
 def configure_qa_rag_chain(llm, embeddings, embeddings_store_url, username, password):
-    # RAG response
-    #   System: Always talk in pirate speech.
-    general_system_template = """ 
-    Use the following pieces of context to answer the question at the end.
-    The context contains question-answer pairs and their links from Stackoverflow.
-    You should prefer information from accepted or more upvoted answers.
-    Make sure to rely on information from the answers and not on questions to provide accuate responses.
-    When you find particular answer in the context useful, make sure to cite it in the answer using the link.
-    If you don't know the answer, just say that you don't know, don't try to make up an answer.
-    ----
-    {summaries}
-    ----
-    Each answer you generate should contain a section at the end of links to 
-    Stackoverflow questions and answers you found useful, which are described under Source value.
-    You can only use links to StackOverflow questions that are present in the context and always
-    add links to the end of the answer in the style of citations.
-    Generate concise answers with references sources section of links to 
-    relevant StackOverflow questions only at the end of the answer.
+    # RAG response for PDF data
+    general_system_template = """Use the context from the data you get to answer the question. Make sure to rely on 
+    information from the data provided and not make up an answer. If you don't know the answer based on the context, 
+    just say that you don't know.
+    ---- {summaries} ----
+    At the end of each answer include the source of the data you used to answer the question.
+    You can find it under the source value.
+    Generate accuarate answers with references to the source of the data.
     """
     general_user_template = "Question:```{question}```"
     messages = [
@@ -129,35 +110,25 @@ def configure_qa_rag_chain(llm, embeddings, embeddings_store_url, username, pass
         prompt=qa_prompt,
     )
 
-    # Vector + Knowledge Graph response
+    # Vector + PDF data response
     kg = Neo4jVector.from_existing_index(
         embedding=embeddings,
         url=embeddings_store_url,
         username=username,
         password=password,
-        database="neo4j",  # neo4j by default
-        index_name="stackoverflow",  # vector by default
-        text_node_property="body",  # text by default
+        database="neo4j",
+        index_name="pdf_storage",  # Adjusted to PDF storage index name
+        text_node_property="text",  # Assuming text property holds PDF data
         retrieval_query="""
-    WITH node AS question, score AS similarity
-    CALL  { with question
-        MATCH (question)<-[:ANSWERS]-(answer)
-        WITH answer
-        ORDER BY answer.is_accepted DESC, answer.score DESC
-        WITH collect(answer)[..2] as answers
-        RETURN reduce(str='', answer IN answers | str + 
-                '\n### Answer (Accepted: '+ answer.is_accepted +
-                ' Score: ' + answer.score+ '): '+  answer.body + '\n') as answerTexts
-    } 
-    RETURN '##Question: ' + question.title + '\n' + question.body + '\n' 
-        + answerTexts AS text, similarity as score, {source: question.link} AS metadata
-    ORDER BY similarity ASC // so that best answers are the last
+    WITH node AS pdf_chunk, score AS similarity
+    RETURN '##PDF Chunk: ' + pdf_chunk.text AS text, similarity as score, {source: 'PDF Data'} AS metadata
+    ORDER BY similarity DESC // best matches first
     """,
     )
 
     kg_qa = RetrievalQAWithSourcesChain(
         combine_documents_chain=qa_chain,
-        retriever=kg.as_retriever(search_kwargs={"k": 2}),
+        retriever=kg.as_retriever(search_kwargs={"k": 3}),
         reduce_k_below_max_tokens=False,
         max_tokens_limit=3375,
     )

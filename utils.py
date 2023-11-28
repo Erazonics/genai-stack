@@ -27,12 +27,19 @@ def extract_title_and_question(input_string):
 
 
 def create_vector_index(driver, dimension: int) -> None:
-    index_query = "CALL db.index.vector.createNodeIndex('stackoverflow', 'Question', 'embedding', $dimension, 'cosine')"
+    # Adjust the index creation for PDF data
+    index_query = ("CALL db.index.vector.createNodeIndex('pdf_storage', 'PdfDocument', 'embedding', $dimension, "
+                   "'cosine')")
     try:
         driver.query(index_query, {"dimension": dimension})
     except:  # Already exists
         pass
-    index_query = "CALL db.index.vector.createNodeIndex('top_answers', 'Answer', 'embedding', $dimension, 'cosine')"
+
+
+def create_vector_index_pdf(driver, dimension: int) -> None:
+    # Adjust the index creation for PDF data
+    index_query = ("CALL db.index.vector.createNodeIndex('pdf_storage', 'PdfDocument', 'embedding', $dimension, "
+                   "'cosine')")
     try:
         driver.query(index_query, {"dimension": dimension})
     except:  # Already exists
@@ -40,15 +47,7 @@ def create_vector_index(driver, dimension: int) -> None:
 
 
 def create_constraints(driver):
+    # Adjust the constraints for the PDF data schema
     driver.query(
-        "CREATE CONSTRAINT question_id IF NOT EXISTS FOR (q:Question) REQUIRE (q.id) IS UNIQUE"
-    )
-    driver.query(
-        "CREATE CONSTRAINT answer_id IF NOT EXISTS FOR (a:Answer) REQUIRE (a.id) IS UNIQUE"
-    )
-    driver.query(
-        "CREATE CONSTRAINT user_id IF NOT EXISTS FOR (u:User) REQUIRE (u.id) IS UNIQUE"
-    )
-    driver.query(
-        "CREATE CONSTRAINT tag_name IF NOT EXISTS FOR (t:Tag) REQUIRE (t.name) IS UNIQUE"
+        "CREATE CONSTRAINT pdf_id IF NOT EXISTS FOR (p:PdfDocument) REQUIRE (p.id) IS UNIQUE"
     )
