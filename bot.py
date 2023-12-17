@@ -11,6 +11,9 @@ from chains import (
     load_llm,
     configure_llm_only_chain,
     configure_qa_rag_chain,
+    configure_rulecheck_chain,
+    configure_json_chain,
+configure_combined_chain
 )
 from utils import create_vector_index_pdf
 
@@ -37,6 +40,9 @@ llm = load_llm(llm_name, logger=logger, config={"ollama_base_url": ollama_base_u
 llm_chain = configure_llm_only_chain(llm)
 
 rag_chain = configure_qa_rag_chain(llm, embeddings, embeddings_store_url=url, username=username, password=password)
+rulecheck_chain = configure_rulecheck_chain(llm, neo4j_graph)
+json_chain = configure_json_chain(llm)
+combined_chain = configure_combined_chain(llm, neo4j_graph)
 
 
 class StreamHandler(BaseCallbackHandler):
@@ -116,8 +122,8 @@ def display_chat():
 
 
 def mode_select() -> str:
-    options = ["Disabled", "Enabled"]
-    return st.radio("Select RAG mode", options, horizontal=True)
+    options = ["Disabled", "Enabled", "Rule", "json", "combined"]
+    return st.radio("Select mode", options, horizontal=True)
 
 
 name = mode_select()
@@ -125,6 +131,12 @@ if name == "LLM only" or name == "Disabled":
     output_function = llm_chain
 elif name == "Vector + Graph" or name == "Enabled":
     output_function = rag_chain
+elif name == "Rule":
+    output_function = rulecheck_chain
+elif name == "json":
+    output_function = json_chain
+elif name == "combined":
+    output_function = combined_chain
 
 
 def open_sidebar():

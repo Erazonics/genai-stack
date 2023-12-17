@@ -54,8 +54,10 @@ def load_llm(llm_name: str, logger=BaseLogger(), config={}):
             model=llm_name,
             streaming=True,
             # seed=2,
-            top_k=10,  # A higher value (100) will give more diverse answers, while a lower value (10) will be more conservative.
-            top_p=0.3,  # Higher value (0.95) will lead to more diverse text, while a lower value (0.5) will generate more focused text.
+            top_k=10,
+            # A higher value (100) will give more diverse answers, while a lower value (10) will be more conservative.
+            top_p=0.3,
+            # Higher value (0.95) will lead to more diverse text, while a lower value (0.5) will generate more focused text.
             num_ctx=3072,  # Sets the size of the context window used to generate the next token.
         )
     logger.info("LLM: Using GPT-3.5")
@@ -76,7 +78,7 @@ def configure_llm_only_chain(llm):
     )
 
     def generate_llm_output(
-        user_input: str, callbacks: List[Any], prompt=chat_prompt
+            user_input: str, callbacks: List[Any], prompt=chat_prompt
     ) -> str:
         chain = prompt | llm
         answer = chain.invoke(
@@ -85,6 +87,89 @@ def configure_llm_only_chain(llm):
         return {"answer": answer}
 
     return generate_llm_output
+
+
+def configure_rulecheck_chain(llm, neo4j_graph):
+    # Check input against certain rules
+    records = neo4j_graph.query("MATCH (r:Rule) RETURN r.title AS title, r.body AS body")
+    rules = []
+    for i, rule in enumerate(records, start=1):
+        rules.append((rule["title"], rule["body"]))
+    rules_prompt = ""
+    for i, rule in enumerate(rules, start=1):
+        rules_prompt += f"{i}. \n{rule[0]}\n----\n\n"
+        rules_prompt += "----\n\n"
+
+    template = f"""
+    You are a helpful assistant that checks the input against certain rules. Check the input against the following rules:
+    {rules_prompt}
+    If you can't say if the rule applies for sure just name the rule and say that you can't check it.
+    """
+    system_message_prompt = SystemMessagePromptTemplate.from_template(template)
+    human_template = "{data}"
+    human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
+    chat_prompt = ChatPromptTemplate.from_messages(
+        [system_message_prompt, human_message_prompt]
+    )
+
+    def generate_llm_output(
+            user_input: str, callbacks: List[Any], prompt=chat_prompt
+    ) -> str:
+        chain = prompt | llm
+        answer = chain.invoke(
+            {"data": user_input}, config={"callbacks": callbacks}
+        ).content
+        return {"answer": answer}
+
+    return generate_llm_output
+
+
+def configure_json_chain(llm):
+    # JSON response
+    template = """
+    You are a helpful assistant that helps a support agent with turning documents into json.
+    these documents contain data about materials and what they contain as low as possible.
+    just return the json data.
+    """
+    system_message_prompt = SystemMessagePromptTemplate.from_template(template)
+    human_template = "{data}"
+    human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
+    chat_prompt = ChatPromptTemplate.from_messages(
+        [system_message_prompt, human_message_prompt]
+    )
+
+    def generate_llm_output(
+            user_input: str, callbacks: List[Any], prompt=chat_prompt
+    ) -> str:
+        chain = prompt | llm
+        answer = chain.invoke(
+            {"data": user_input}, config={"callbacks": callbacks}
+        ).content
+        return {"answer": answer}
+
+    return generate_llm_output
+
+
+def configure_combined_chain(llm, neo4j_graph):
+    # Initialize both chains
+    json_conversion = configure_json_chain(llm)
+    rule_checking = configure_rulecheck_chain(llm, neo4j_graph)
+
+    def generate_combined_output(user_input: str, callbacks: List[Any]) -> str:
+        # First, convert the user input to JSON
+        json_output = json_conversion(user_input, callbacks)
+
+        # Check if JSON conversion was successful
+        if json_output is not None and "answer" in json_output:
+            json_data = json_output["answer"]
+
+            # Now, apply the rule checking to the JSON data
+            rule_check_result = rule_checking(json_data, callbacks)
+            return rule_check_result
+        else:
+            return {"answer": "Failed to convert input to JSON."}
+
+    return generate_combined_output
 
 
 def configure_qa_rag_chain(llm, embeddings, embeddings_store_url, username, password):
