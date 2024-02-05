@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.graphs import Neo4jGraph
 from streamlit.logger import get_logger
+import pdfplumber
 
 from chains import (
     load_embedding_model,
@@ -12,8 +13,6 @@ from chains import (
     configure_llm_only_chain,
     configure_qa_rag_chain,
     configure_rulecheck_chain,
-    configure_json_chain,
-configure_combined_chain
 )
 from utils import create_vector_index_pdf
 
@@ -41,8 +40,25 @@ llm_chain = configure_llm_only_chain(llm)
 
 rag_chain = configure_qa_rag_chain(llm, embeddings, embeddings_store_url=url, username=username, password=password)
 rulecheck_chain = configure_rulecheck_chain(llm, neo4j_graph)
-json_chain = configure_json_chain(llm)
-combined_chain = configure_combined_chain(llm, neo4j_graph)
+
+
+def convert_pdf_tables_to_json(pdf_file):
+    # Open the PDF file
+    with pdfplumber.open(pdf_file) as pdf:
+        json_data = []
+
+        # Iterate over the pages in the PDF
+        for page in pdf.pages:
+            # Extract tables from the page
+            tables = page.extract_tables()
+
+            # Iterate over the tables
+            for table in tables:
+                # Convert table to JSON
+                json_table = [dict(zip(table[0], row)) for row in table[1:]]
+                json_data.append(json_table)
+
+        return json.dumps(json_data)
 
 
 class StreamHandler(BaseCallbackHandler):
@@ -122,7 +138,7 @@ def display_chat():
 
 
 def mode_select() -> str:
-    options = ["Disabled", "Enabled", "Rule", "json", "combined"]
+    options = ["Disabled", "Enabled", "Rule"]
     return st.radio("Select mode", options, horizontal=True)
 
 
@@ -132,11 +148,17 @@ if name == "LLM only" or name == "Disabled":
 elif name == "Vector + Graph" or name == "Enabled":
     output_function = rag_chain
 elif name == "Rule":
-    output_function = rulecheck_chain
-elif name == "json":
-    output_function = json_chain
-elif name == "combined":
-    output_function = combined_chain
+    pdf_file = st.file_uploader("Upload your PDF", type="pdf")
+    if pdf_file is not None:
+        json_data = convert_pdf_tables_to_json(pdf_file)
+    else:
+        json_data = st.text_input("Enter JSON data")
+
+    # Check if json_data is not undefined
+    if json_data:
+        output_function = rulecheck_chain(json_data)
+    else:
+        raise ValueError("json_data is undefined")
 
 
 def open_sidebar():

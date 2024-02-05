@@ -113,63 +113,15 @@ def configure_rulecheck_chain(llm, neo4j_graph):
     )
 
     def generate_llm_output(
-            user_input: str, callbacks: List[Any], prompt=chat_prompt
+            json_data: str, callbacks: List[Any], prompt=chat_prompt
     ) -> str:
         chain = prompt | llm
         answer = chain.invoke(
-            {"data": user_input}, config={"callbacks": callbacks}
+            {"data": json_data}, config={"callbacks": callbacks}
         ).content
         return {"answer": answer}
 
     return generate_llm_output
-
-
-def configure_json_chain(llm):
-    # JSON response
-    template = """
-    You are a helpful assistant that helps a support agent with turning documents into json.
-    these documents contain data about materials and what they contain as low as possible.
-    just return the json data.
-    """
-    system_message_prompt = SystemMessagePromptTemplate.from_template(template)
-    human_template = "{data}"
-    human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
-    chat_prompt = ChatPromptTemplate.from_messages(
-        [system_message_prompt, human_message_prompt]
-    )
-
-    def generate_llm_output(
-            user_input: str, callbacks: List[Any], prompt=chat_prompt
-    ) -> str:
-        chain = prompt | llm
-        answer = chain.invoke(
-            {"data": user_input}, config={"callbacks": callbacks}
-        ).content
-        return {"answer": answer}
-
-    return generate_llm_output
-
-
-def configure_combined_chain(llm, neo4j_graph):
-    # Initialize both chains
-    json_conversion = configure_json_chain(llm)
-    rule_checking = configure_rulecheck_chain(llm, neo4j_graph)
-
-    def generate_combined_output(user_input: str, callbacks: List[Any]) -> str:
-        # First, convert the user input to JSON
-        json_output = json_conversion(user_input, callbacks)
-
-        # Check if JSON conversion was successful
-        if json_output is not None and "answer" in json_output:
-            json_data = json_output["answer"]
-
-            # Now, apply the rule checking to the JSON data
-            rule_check_result = rule_checking(json_data, callbacks)
-            return rule_check_result
-        else:
-            return {"answer": "Failed to convert input to JSON."}
-
-    return generate_combined_output
 
 
 def configure_qa_rag_chain(llm, embeddings, embeddings_store_url, username, password):

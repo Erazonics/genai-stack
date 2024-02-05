@@ -51,6 +51,27 @@ def process_pdf(pdf_file):
     )
 
 
+def process_pdf_whole(pdf_file):
+    pdf_reader = PdfReader(pdf_file)
+    text = ""
+    for page in pdf_reader.pages:
+        page_text = page.extract_text()
+        if page_text:  # Add text only if it exists
+            text += page_text
+
+    # Store in Neo4j
+    Neo4jVector.from_texts(
+        [text],  # Pass the whole text as a single element list
+        url=url,
+        username=username,
+        password=password,
+        embedding=embeddings,
+        index_name="pdf_storage",
+        node_label="PdfDocument",
+        pre_delete_collection=False,  # Set to True if you want to clear previous data
+    )
+
+
 def main():
     st.title("PDF Data Uploader")
     st.subheader("Upload PDF files to store their data in Neo4j")
@@ -58,9 +79,18 @@ def main():
     # Upload PDF
     pdf = st.file_uploader("Upload your PDF", type="pdf")
 
+    # Choose processing method
+    processing_method = st.radio(
+        "Choose how to process the PDF",
+        ("Process as a whole", "Process in chunks"),
+    )
+
     if pdf is not None:
         with st.spinner("Processing PDF..."):
-            process_pdf(pdf)
+            if processing_method == "Process as a whole":
+                process_pdf_whole(pdf)
+            else:
+                process_pdf(pdf)
             st.success("PDF processed and data stored successfully!")
 
 
