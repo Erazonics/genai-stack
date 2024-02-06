@@ -143,8 +143,9 @@ def mode_select() -> str:
     return st.radio("Select mode", options, horizontal=True)
 
 
-json_data = None  # Initialize json_data
 name = mode_select()
+json_data = None  # Initialize json_data
+
 if name == "LLM only" or name == "Disabled":
     output_function = llm_chain
 elif name == "Vector + Graph" or name == "Enabled":
@@ -158,7 +159,8 @@ elif name == "Rule":
 
     # Check if json_data is not undefined
     if json_data:
-        output_function = rulecheck_chain(json_data)
+        stream_handler = StreamHandler(st.empty())
+        output_function = rulecheck_chain(json_data, callbacks=[stream_handler])
     else:
         raise ValueError("json_data is undefined")
 
