@@ -143,6 +143,7 @@ def mode_select() -> str:
     return st.radio("Select mode", options, horizontal=True)
 
 
+json_data = None  # Initialize json_data
 name = mode_select()
 if name == "LLM only" or name == "Disabled":
     output_function = llm_chain
