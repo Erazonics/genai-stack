@@ -12,7 +12,7 @@ from chains import (
     load_llm,
     configure_llm_only_chain,
     configure_qa_rag_chain,
-    configure_rulecheck_chain,
+    configure_rulecheck_chain, configure_fbom_chain,
 )
 from utils import create_vector_index_pdf
 
@@ -40,6 +40,7 @@ llm_chain = configure_llm_only_chain(llm)
 
 rag_chain = configure_qa_rag_chain(llm, embeddings, embeddings_store_url=url, username=username, password=password)
 rulecheck_chain = configure_rulecheck_chain(llm, neo4j_graph)
+fbom_chain = configure_fbom_chain(llm)
 
 
 def process_pdf_whole(pdf_file):
@@ -129,7 +130,7 @@ def display_chat():
 
 
 def mode_select() -> str:
-    options = ["Disabled", "Enabled", "Rule"]
+    options = ["Disabled", "Enabled", "Rule", "FBOM"]
     return st.radio("Select mode", options, horizontal=True)
 
 
@@ -139,6 +140,8 @@ if name == "LLM only" or name == "Disabled":
     output_function = llm_chain
 elif name == "Vector + Graph" or name == "Enabled":
     output_function = rag_chain
+elif name == "FBOM":
+    output_function = fbom_chain
 elif name == "Rule":
     pdf_file = st.file_uploader("Upload your PDF", type="pdf")
     if pdf_file is not None:

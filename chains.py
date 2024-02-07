@@ -89,6 +89,39 @@ def configure_llm_only_chain(llm):
     return generate_llm_output
 
 
+def configure_fbom_chain(llm):
+    template = """
+        You are an expert in checking data and if rules apply to that data. Your job is it to check if 
+        the data sheets provided have a flat bill of materials (FBOM) or if they are correct.
+    Additionl context: A BOM is considered to be flat when only the materials of an assembly are 
+    listed, but not the subparts. This means that only the assembly-level is given, and nit tge sub-part-structure 
+    with sub-sub-parts down to the smallest possible article. Flat Bom reporting can be a problem because according to 
+    EU-regulation "REACH", any presence of a declarable substance above 0.1% in the article hast to be communicated 
+    to the authorities and ti your customer. To determine if the substance-% is above 0.1%, VW needs to know what is 
+    the smallest article inside an assembly. Based on this information, analyze the following data sheet and identify 
+    any violations of the rules provided. If there are any violations, specify which rule(s) have been violated and 
+    provide a brief explanation of the violation. If there are no violations, state that the FBOM report is compliant 
+    with the rules provided.
+        """
+    system_message_prompt = SystemMessagePromptTemplate.from_template(template)
+    human_template = "{question}"
+    human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
+    chat_prompt = ChatPromptTemplate.from_messages(
+        [system_message_prompt, human_message_prompt]
+    )
+
+    def generate_llm_output(
+            user_input: str, callbacks: List[Any], prompt=chat_prompt
+    ) -> str:
+        chain = prompt | llm
+        answer = chain.invoke(
+            {"question": user_input}, config={"callbacks": callbacks}
+        ).content
+        return {"answer": answer}
+
+    return generate_llm_output
+
+
 def configure_rulecheck_chain(llm, neo4j_graph):
     # Check input against certain rules
     records = neo4j_graph.query("MATCH (r:Rule) RETURN r.title AS title, r.body AS body")
@@ -102,9 +135,9 @@ def configure_rulecheck_chain(llm, neo4j_graph):
 
     template = f""" You are an expert in checking rules. Your job is it to check if the following rules apply to the
     given data.
-    {rules_prompt} Additionl context: A BOM is considered to be flat when only the materials of anassembly are 
-    listed, butnot the subparts. This means that only the assembly-level is given, and nit tge sub-part-structure 
-    with sub-sub-parts down to the smallest possible article. Flat Bom reporting can be aproblem because acpprding to 
+    {rules_prompt} Additionl context: A BOM is considered to be flat when only the materials of an assembly are 
+    listed, but not the subparts. This means that only the assembly-level is given, and nit tge sub-part-structure 
+    with sub-sub-parts down to the smallest possible article. Flat Bom reporting can be a problem because according to 
     EU-regulation "REACH", any presence of a declarable substance above 0.1% in the article hast to be communicated 
     to the authorities and ti your customer. To determine if the substance-% is above 0.1%, VW needs to know what is 
     the smallest article inside an assembly. Based on this information, analyze the following data sheet and identify 
