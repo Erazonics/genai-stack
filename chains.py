@@ -100,8 +100,8 @@ def configure_rulecheck_chain(llm, neo4j_graph):
         rules_prompt += f"{i}. \n{rule[0]}\n----\n\n"
         rules_prompt += "----\n\n"
 
-    template = f"""
-    You are a helpful assistant that checks the input against certain rules. Check the input against the following rules:
+    template = f""" You are an expert in checking rules. You will get data with some sort of table about materials 
+    and cheek if the rules apply.
     {rules_prompt}
     If you can't say if the rule applies for sure just name the rule and say that you can't check it.
     """

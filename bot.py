@@ -1,12 +1,11 @@
-import json
 import os
 
 import streamlit as st
+from PyPDF2 import PdfReader
 from dotenv import load_dotenv
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.graphs import Neo4jGraph
 from streamlit.logger import get_logger
-import pdfplumber
 
 from chains import (
     load_embedding_model,
@@ -43,23 +42,14 @@ rag_chain = configure_qa_rag_chain(llm, embeddings, embeddings_store_url=url, us
 rulecheck_chain = configure_rulecheck_chain(llm, neo4j_graph)
 
 
-def convert_pdf_tables_to_json(pdf_file):
-    # Open the PDF file
-    with pdfplumber.open(pdf_file) as pdf:
-        json_data = []
-
-        # Iterate over the pages in the PDF
-        for page in pdf.pages:
-            # Extract tables from the page
-            tables = page.extract_tables()
-
-            # Iterate over the tables
-            for table in tables:
-                # Convert table to JSON
-                json_table = [dict(zip(table[0], row)) for row in table[1:]]
-                json_data.append(json_table)
-
-        return json.dumps(json_data)
+def process_pdf_whole(pdf_file):
+    pdf_reader = PdfReader(pdf_file)
+    text = ""
+    for page in pdf_reader.pages:
+        page_text = page.extract_text()
+        if page_text:  # Add text only if it exists
+            text += page_text
+    return text
 
 
 class StreamHandler(BaseCallbackHandler):
@@ -153,14 +143,14 @@ elif name == "Vector + Graph" or name == "Enabled":
 elif name == "Rule":
     pdf_file = st.file_uploader("Upload your PDF", type="pdf")
     if pdf_file is not None:
-        json_data = convert_pdf_tables_to_json(pdf_file)
+        pdf_data = process_pdf_whole(pdf_file)
     else:
-        json_data = st.text_input("Enter JSON data")
+        pdf_data = st.text_input("Enter data")
 
     # Check if json_data is not undefined
-    if json_data:
+    if pdf_data:
         stream_handler = StreamHandler(st.empty())
-        output_function = rulecheck_chain(json_data, callbacks=[stream_handler])
+        output_function = rulecheck_chain(pdf_data, callbacks=[stream_handler])
     else:
         raise ValueError("json_data is undefined")
 
