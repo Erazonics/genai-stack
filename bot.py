@@ -134,7 +134,6 @@ def mode_select() -> str:
 
 
 name = mode_select()
-json_data = None  # Initialize json_data
 
 if name == "LLM only" or name == "Disabled":
     output_function = llm_chain
