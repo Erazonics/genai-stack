@@ -100,10 +100,14 @@ def configure_rulecheck_chain(llm, neo4j_graph):
         rules_prompt += f"{i}. \n{rule[0]}\n----\n\n"
         rules_prompt += "----\n\n"
 
-    template = f""" You are an expert in checking rules. You will get data with some sort of table about materials 
-    and cheek if the rules apply.
+    template = f""" You are an expert in checking rules. Your job is it to check if the following rules apply to the
+    given data.
     {rules_prompt}
     If you can't say if the rule applies for sure just name the rule and say that you can't check it.
+    Your answer should be in the following format:
+    Rule: Rule title
+    Applies: Yes/No
+    Explain: Your explanation and where you found the reason for your answer.
     """
     system_message_prompt = SystemMessagePromptTemplate.from_template(template)
     human_template = "{data}"
