@@ -91,9 +91,11 @@ def configure_llm_only_chain(llm):
 
 def configure_fbom_chain(llm):
     template = """
-        You are an expert in checking data and if rules apply to that data. Your job is it to check if 
-        the data sheets provided have a flat bill of materials (FBOM) or if they are correct.
-    Additionl context: A BOM is considered to be flat when only the materials of an assembly are 
+    You are an expert in validating json. You will get datasheets that contain materials and how they are built as json.
+    You need to check if there is a flat structure inside the json. There needs to be a tree structure since a flat bill 
+    of materials (FBOM) is not allowed. If the structure is flat, you need to identify the violation and provide a brief
+    explanation of the violation. If the structure is not flat, state that the FBOM report is compliant with the rules. 
+    Additionl context: A Bill of materials (BOM) is considered to be flat when only the materials of an assembly are 
     listed, but not the subparts. This means that only the assembly-level is given, and nit tge sub-part-structure 
     with sub-sub-parts down to the smallest possible article. Flat Bom reporting can be a problem because according to 
     EU-regulation "REACH", any presence of a declarable substance above 0.1% in the article hast to be communicated 
