@@ -55,11 +55,12 @@ def load_llm(llm_name: str, logger=BaseLogger(), config={}):
             model=llm_name,
             streaming=True,
             # seed=2,
-            top_k=10,
+            top_k=20,
             # A higher value (100) will give more diverse answers, while a lower value (10) will be more conservative.
-            top_p=0.3,
-            # Higher value (0.95) will lead to more diverse text, while a lower value (0.5) will generate more focused text.
-            num_ctx=4072,  # Sets the size of the context window used to generate the next token.
+            top_p=0.5,
+            # Higher value (0.95) will lead to more diverse text, while a lower value (0.5) will generate more
+            # focused text.
+            num_ctx=8072,  # Sets the size of the context window used to generate the next token.
         )
     logger.info("LLM: Using GPT-3.5")
     return ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo", streaming=True)
@@ -95,7 +96,9 @@ def configure_fbom_chain(llm):
     Task Description: Analyze a JSON file that contains information about components and their 
     materials to determine if it has a hierarchical (tree-like) structure. This structure is characterized by nested 
     arrays or objects that represent the relationship between components and their sub-components, down to the 
-    material level.
+    material level. You need to think about the component your analyzing aswell. A PCB or wiring harness is allowed to 
+    have a flat structure. A Car has many diffrent components on the other hand while a screw only has the substances
+    used.
     Data Structure: The JSON file includes components with attributes such as name, part number, 
     weight, and a list of sub-components or materials. Each sub-component or material can have its own properties 
     and, potentially, further nested sub-components. 
@@ -104,66 +107,63 @@ def configure_fbom_chain(llm):
     for representing complex relationships and dependencies between different parts of a product.
     Heres a good example of a hierarchical structure:
     
-    - Kugelschreiber
-  - Gehäuse
-    - Unterteil
-      - >PP-T20<
-        - Polypropylen
-        - Talk
-        - Weitere Additive, nicht zu deklarieren
-    - Oberteil
-      - >PP-T20<
-        - Polypropylen
-        - Talk
-        - Weitere Additive, nicht zu deklarieren
-  - Stahlfeder
-    - DC01
-      - Kohlenstof
-      - Mangan
-      - Phosphor
-      - Schwefel
-      - Eisen
-  - Mine
-    - Spitze
-      - e-plate Brass (electrodeposited Brass Coatings)
-        - Kohlenstof
-        - Schwefel
-        - Kupfer
-        - Zink (metall)
-    - Minenhülle
-      - 1800H
-        - PE
-    - Tinte
-      - screen-/pad-/letterpress-/flexo printing ink
-        - Pigmentanteil, nicht zu deklarieren
-        - Organischer Stoff, nicht zu deklarieren
+    - Component
+  - Subcomponent1
+    - Sub-subcomponent1
+      - Material1
+        - Substance1
+        - Substance2
+        - Substance3
+    - Sub-subcomponent2
+      - Material2
+        - Substance1
+        - Substance2
+        - Substance3
+  - Subcomponent2
+    - Material3
+      - Substance1
+      - Substance2
+      - Substance3
+      - Substance4
+  - Subcomponent3
+    - Sub-subcomponent1
+      - Material4
+        - Substance1
+        - Substance2
+    - Sub-subcomponent2
+      - Material5
+        - Substance1
+    - Sub-subcomponent3
+      - Material6
+        - Substance1
+        - Substance2
     
     This structure represents the hierarchy of components and their sub-components, down to the material level. Each 
     indentation level represents a deeper level in the hierarchy.
     
     Heres a bad exmaple of a flat  structure:
     
-    - Kugelschreiber
-  - Polypropylen
-  - Talk
-  - Weitere Additive, nicht zu deklarieren
-  - Polypropylen
-  - Talk
-  - Weitere Additive, nicht zu deklarieren
-  - Kohlenstof
-  - Mangan
-  - Phosphor
-  - Schwefel
-  - Eisen
-  - Kohlenstof
-  - Schwefel
-  - Kupfer
-  - Zink (metall)
-  - Pigmentanteil, nicht zu deklarieren
-  - Organischer Stoff, nicht zu deklarieren
+    - Component
+  - Substance1
+  - Substance2
+  - Substance3
+  - Substance1
+  - Substance2
+  - Substance3
+  - Substance4
+  - Substance5
+  - Substance6
+  - Substance7
+  - Substance8
+  - Substance4
+  - Substance7
+  - Substance9
+  - Substance10
+  - Substance11
+  - Substance12
   
   This structure is flat, meaning it doesn't show the relationship between components and their sub-components. 
-  Instead, all materials are listed at the same level under the main component Kugelschreiber.
+  Instead, all materials are listed at the same level under the main component.
     
     Input: The JSON data will be presented as a text input directly within the environment.
     
