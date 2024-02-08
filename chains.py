@@ -59,7 +59,7 @@ def load_llm(llm_name: str, logger=BaseLogger(), config={}):
             # A higher value (100) will give more diverse answers, while a lower value (10) will be more conservative.
             top_p=0.3,
             # Higher value (0.95) will lead to more diverse text, while a lower value (0.5) will generate more focused text.
-            num_ctx=3072,  # Sets the size of the context window used to generate the next token.
+            num_ctx=4072,  # Sets the size of the context window used to generate the next token.
         )
     logger.info("LLM: Using GPT-3.5")
     return ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo", streaming=True)
@@ -169,7 +169,7 @@ def configure_fbom_chain(llm):
     
     Output: The output should identify whether the JSON structure is hierarchical as desired. If not, 
     provide a brief explanation identifying which part of the structure deviates from the preferred hierarchical 
-    organization. Only answer the qusetion based on the data provided, do not make up an answer.
+    organization. Only answer the question based on the data provided, do not make up an answer.
     
     Additional context: A Bill of materials (BOM) is considered to be flat when only the materials of an 
     assembly are listed, but not the subparts. This means that only the assembly-level is given, and nit tge 
@@ -179,7 +179,9 @@ def configure_fbom_chain(llm):
     know what is the smallest article inside an assembly. Based on this information, analyze the following data sheet and 
     identify any violations of the rules provided. If there are any violations, specify which rule(s) have been violated 
     and provide a brief explanation of the violation. If there are no violations, state that the FBOM report is compliant 
-    with the rules provided."""
+    with the rules provided.
+    Answer clearly and concisely, and provide a brief explanation of the violation if there is one.
+    """
     system_message_prompt = SystemMessagePromptTemplate.from_template(template)
     human_template = "{question}"
     human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
