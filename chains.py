@@ -92,22 +92,22 @@ def configure_llm_only_chain(llm):
 
 
 good_example = [{
-    "Benennung": "Kugelschreiber",
-    "Teil-/Sach-Nr": "5K0 123 123",
-    "Gewicht (g)": 5,
-    "subparts": [
+    'Benennung': 'Kugelschreiber',
+    'Teil-/Sach-Nr': '5K0 123 123',
+    'Gewicht (g)': 5,
+    'subparts': [
         {
-            "Benennung": "Gehäuse",
-            "Gewicht (g)": 3.5,
-            "subparts": [
+            'Benennung': 'Gehäuse',
+            'Gewicht (g)': 3.5,
+            'subparts': [
                 {
-                    "Name": ">PP-T20<",
-                    "Gewicht (g)": 1.5,
-                    "subparts": [
+                    'Name': '>PP-T20<',
+                    'Gewicht (g)': 1.5,
+                    'subparts': [
                         {
-                            "Reinstoffname": "Polypropylen",
-                            "CAS Nr.": "9003-07-0",
-                            "Mengenanteil %": 79
+                            'Reinstoffname': 'Polypropylen',
+                            'CAS Nr.': '9003-07-0',
+                            'Mengenanteil %': 79
                         }
                     ]
                 }
@@ -118,25 +118,25 @@ good_example = [{
 
 bad_example = [
     {
-        "Benennung": "Kugelschreiber",
-        "Teil-/Sach-Nr": "5K0 123 123",
-        "IMDS ID / Version": "215407905 / 0.01",
-        "Gewicht (g)": 5,
-        "materials": [
+        'Benennung': 'Kugelschreiber',
+        'Teil-/Sach-Nr': '5K0 123 123',
+        'IMDS ID / Version': '215407905 / 0.01',
+        'Gewicht (g)': 5,
+        'materials': [
             {
-                "Reinstoffname": "Polypropylen",
-                "CAS Nr.": "9003-07-0",
-                "Mengenanteil %": 79
+                'Reinstoffname': 'Polypropylen',
+                'CAS Nr.': '9003-07-0',
+                'Mengenanteil %': 79
             },
             {
-                "Reinstoffname": "Talk",
-                "CAS Nr.": "14807-96-6",
-                "Mengenanteil %": 20
+                'Reinstoffname': 'Talk',
+                'CAS Nr.': '14807-96-6',
+                'Mengenanteil %': 20
             },
             {
-                "Reinstoffname": "Weitere Additive, nicht zu deklarieren",
-                "CAS Nr.": "system",
-                "Mengenanteil %": 1
+                'Reinstoffname': 'Weitere Additive, nicht zu deklarieren',
+                'CAS Nr.': 'system',
+                'Mengenanteil %': 1
             }
         ]
     }
