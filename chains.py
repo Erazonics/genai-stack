@@ -91,20 +91,85 @@ def configure_llm_only_chain(llm):
 
 def configure_fbom_chain(llm):
     template = """
-    You are an expert in validating json. You will get datasheets that contain materials and how they are built as json.
-    You need to check if there is a flat structure inside the json. There needs to be a tree structure since a flat bill 
-    of materials (FBOM) is not allowed. If the structure is flat, you need to identify the violation and provide a brief
-    explanation of the violation. If the structure is not flat, state that the FBOM report is compliant with the rules. 
-    Additionl context: A Bill of materials (BOM) is considered to be flat when only the materials of an assembly are 
-    listed, but not the subparts. This means that only the assembly-level is given, and nit tge sub-part-structure 
-    with sub-sub-parts down to the smallest possible article. Flat Bom reporting can be a problem because according to 
-    EU-regulation "REACH", any presence of a declarable substance above 0.1% in the article hast to be communicated 
-    to the authorities and ti your customer. To determine if the substance-% is above 0.1%, VW needs to know what is 
-    the smallest article inside an assembly. Based on this information, analyze the following data sheet and identify 
-    any violations of the rules provided. If there are any violations, specify which rule(s) have been violated and 
-    provide a brief explanation of the violation. If there are no violations, state that the FBOM report is compliant 
-    with the rules provided.
-        """
+    Task Description: Analyze a JSON file that contains information about components and their 
+    materials to determine if it has a hierarchical (tree-like) structure. This structure is characterized by nested 
+    arrays or objects that represent the relationship between components and their sub-components, down to the 
+    material level.
+    Data Structure: The JSON file includes components with attributes such as name, part number, 
+    weight, and a list of sub-components or materials. Each sub-component or material can have its own properties 
+    and, potentially, further nested sub-components. 
+    Preferred Structure Criteria: A preferred JSON structure is 
+    hierarchical, with components and their materials/sub-components organized in a tree-like fashion. This allows 
+    for representing complex relationships and dependencies between different parts of a product.
+    Heres a good example of a hierarchical JSON structure:
+    {
+  "Benennung": "Kugelschreiber",
+  "Teil-/Sach-Nr": "5K0 123 123",
+  "Gewicht (g)": 5,
+  "subparts": [
+    {
+      "Benennung": "Gehäuse",
+      "Gewicht (g)": 3.5,
+      "subparts": [
+        {
+          "Name": ">PP-T20<",
+          "Gewicht (g)": 1.5,
+          "subparts": [
+            {
+              "Reinstoffname": "Polypropylen",
+              "CAS Nr.": "9003-07-0",
+              "Mengenanteil %": 79
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+Heres a bad exmaple of a flat JSON structure:
+
+[
+  {
+    "Benennung": "Kugelschreiber",
+    "Teil-/Sach-Nr": "5K0 123 123",
+    "IMDS ID / Version": "215407905 / 0.01",
+    "Gewicht (g)": 5,
+    "materials": [
+      {
+        "Reinstoffname": "Polypropylen",
+        "CAS Nr.": "9003-07-0",
+        "Mengenanteil %": 79
+      },
+      {
+        "Reinstoffname": "Talk",
+        "CAS Nr.": "14807-96-6",
+        "Mengenanteil %": 20
+      },
+      {
+        "Reinstoffname": "Weitere Additive, nicht zu deklarieren",
+        "CAS Nr.": "system",
+        "Mengenanteil %": 1
+      }
+    ]
+  }
+]
+
+Input: The JSON data will be presented as a text input directly within the environment.
+
+Expected Output: The output should identify whether the JSON structure is hierarchical as desired. If not, 
+provide a brief explanation identifying which part of the structure deviates from the preferred hierarchical 
+organization.
+ 
+Additional context: A Bill of materials (BOM) is considered to be flat when only the materials of an 
+assembly are listed, but not the subparts. This means that only the assembly-level is given, and nit tge 
+sub-part-structure with sub-sub-parts down to the smallest possible article. Flat Bom reporting can be a problem 
+because according to EU-regulation "REACH", any presence of a declarable substance above 0.1% in the article hast to 
+be communicated to the authorities and ti your customer. To determine if the substance-% is above 0.1%, VW needs to 
+know what is the smallest article inside an assembly. Based on this information, analyze the following data sheet and 
+identify any violations of the rules provided. If there are any violations, specify which rule(s) have been violated 
+and provide a brief explanation of the violation. If there are no violations, state that the FBOM report is compliant 
+with the rules provided."""
     system_message_prompt = SystemMessagePromptTemplate.from_template(template)
     human_template = "{question}"
     human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
