@@ -1,4 +1,3 @@
-import json
 
 from langchain.embeddings import OllamaEmbeddings, OpenAIEmbeddings, SentenceTransformerEmbeddings, BedrockEmbeddings
 from langchain.chat_models import ChatOpenAI, ChatOllama, BedrockChat
@@ -91,61 +90,6 @@ def configure_llm_only_chain(llm):
     return generate_llm_output
 
 
-good_example = [{
-    'Benennung': 'Kugelschreiber',
-    'Teil-/Sach-Nr': '5K0 123 123',
-    'Gewicht (g)': 5,
-    'subparts': [
-        {
-            'Benennung': 'Gehäuse',
-            'Gewicht (g)': 3.5,
-            'subparts': [
-                {
-                    'Name': '>PP-T20<',
-                    'Gewicht (g)': 1.5,
-                    'subparts': [
-                        {
-                            'Reinstoffname': 'Polypropylen',
-                            'CAS Nr.': '9003-07-0',
-                            'Mengenanteil %': 79
-                        }
-                    ]
-                }
-            ]
-        }
-    ]
-}]
-
-bad_example = [
-    {
-        'Benennung': 'Kugelschreiber',
-        'Teil-/Sach-Nr': '5K0 123 123',
-        'IMDS ID / Version': '215407905 / 0.01',
-        'Gewicht (g)': 5,
-        'materials': [
-            {
-                'Reinstoffname': 'Polypropylen',
-                'CAS Nr.': '9003-07-0',
-                'Mengenanteil %': 79
-            },
-            {
-                'Reinstoffname': 'Talk',
-                'CAS Nr.': '14807-96-6',
-                'Mengenanteil %': 20
-            },
-            {
-                'Reinstoffname': 'Weitere Additive, nicht zu deklarieren',
-                'CAS Nr.': 'system',
-                'Mengenanteil %': 1
-            }
-        ]
-    }
-]
-
-good_example_string = json.dumps(good_example)
-bad_example_string = json.dumps(bad_example)
-
-
 def configure_fbom_chain(llm):
     template = f"""
     Task Description: Analyze a JSON file that contains information about components and their 
@@ -158,13 +102,68 @@ def configure_fbom_chain(llm):
     Preferred Structure Criteria: A preferred JSON structure is 
     hierarchical, with components and their materials/sub-components organized in a tree-like fashion. This allows 
     for representing complex relationships and dependencies between different parts of a product.
-    Heres a good example of a hierarchical JSON structure:
+    Heres a good example of a hierarchical structure:
     
-    {good_example_string}
+    - Kugelschreiber
+  - Gehäuse
+    - Unterteil
+      - >PP-T20<
+        - Polypropylen
+        - Talk
+        - Weitere Additive, nicht zu deklarieren
+    - Oberteil
+      - >PP-T20<
+        - Polypropylen
+        - Talk
+        - Weitere Additive, nicht zu deklarieren
+  - Stahlfeder
+    - DC01
+      - Kohlenstof
+      - Mangan
+      - Phosphor
+      - Schwefel
+      - Eisen
+  - Mine
+    - Spitze
+      - e-plate Brass (electrodeposited Brass Coatings)
+        - Kohlenstof
+        - Schwefel
+        - Kupfer
+        - Zink (metall)
+    - Minenhülle
+      - 1800H
+        - PE
+    - Tinte
+      - screen-/pad-/letterpress-/flexo printing ink
+        - Pigmentanteil, nicht zu deklarieren
+        - Organischer Stoff, nicht zu deklarieren
     
-    Heres a bad exmaple of a flat JSON structure:
+    This structure represents the hierarchy of components and their sub-components, down to the material level. Each 
+    indentation level represents a deeper level in the hierarchy.
     
-    {bad_example_string}
+    Heres a bad exmaple of a flat  structure:
+    
+    - Kugelschreiber
+  - Polypropylen
+  - Talk
+  - Weitere Additive, nicht zu deklarieren
+  - Polypropylen
+  - Talk
+  - Weitere Additive, nicht zu deklarieren
+  - Kohlenstof
+  - Mangan
+  - Phosphor
+  - Schwefel
+  - Eisen
+  - Kohlenstof
+  - Schwefel
+  - Kupfer
+  - Zink (metall)
+  - Pigmentanteil, nicht zu deklarieren
+  - Organischer Stoff, nicht zu deklarieren
+  
+  This structure is flat, meaning it doesn't show the relationship between components and their sub-components. 
+  Instead, all materials are listed at the same level under the main component Kugelschreiber.
     
     Input: The JSON data will be presented as a text input directly within the environment.
     
