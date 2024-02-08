@@ -60,7 +60,7 @@ def load_llm(llm_name: str, logger=BaseLogger(), config={}):
             top_p=0.5,
             # Higher value (0.95) will lead to more diverse text, while a lower value (0.5) will generate more
             # focused text.
-            num_ctx=8072,  # Sets the size of the context window used to generate the next token.
+            num_ctx=6072,  # Sets the size of the context window used to generate the next token.
         )
     logger.info("LLM: Using GPT-3.5")
     return ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo", streaming=True)
@@ -96,16 +96,14 @@ def configure_fbom_chain(llm):
     Task Description: Analyze a JSON file that contains information about components and their 
     materials to determine if it has a hierarchical (tree-like) structure. This structure is characterized by nested 
     arrays or objects that represent the relationship between components and their sub-components, down to the 
-    material level. You need to think about the component your analyzing aswell. A PCB or wiring harness is allowed to 
-    have a flat structure. A Car has many diffrent components on the other hand while a screw only has the substances
-    used.
+    material level.
     Data Structure: The JSON file includes components with attributes such as name, part number, 
     weight, and a list of sub-components or materials. Each sub-component or material can have its own properties 
     and, potentially, further nested sub-components. 
     Preferred Structure Criteria: A preferred JSON structure is 
     hierarchical, with components and their materials/sub-components organized in a tree-like fashion. This allows 
     for representing complex relationships and dependencies between different parts of a product.
-    Heres a good example of a hierarchical structure:
+    Here's a good example of a hierarchical structure:
     
     - Component
   - Subcomponent1
@@ -141,7 +139,7 @@ def configure_fbom_chain(llm):
     This structure represents the hierarchy of components and their sub-components, down to the material level. Each 
     indentation level represents a deeper level in the hierarchy.
     
-    Heres a bad exmaple of a flat  structure:
+    Here's a bad exmaple of a flat  structure which is not allowed:
     
     - Component
   - Substance1
@@ -172,7 +170,7 @@ def configure_fbom_chain(llm):
     organization. Only answer the question based on the data provided, do not make up an answer.
     
     Additional context: A Bill of materials (BOM) is considered to be flat when only the materials of an 
-    assembly are listed, but not the subparts. This means that only the assembly-level is given, and nit tge 
+    assembly are listed, but not the subparts. This means that only the assembly-level is given, and not the 
     sub-part-structure with sub-sub-parts down to the smallest possible article. Flat Bom reporting can be a problem 
     because according to EU-regulation "REACH", any presence of a declarable substance above 0.1% in the article hast to 
     be communicated to the authorities and ti your customer. To determine if the substance-% is above 0.1%, VW needs to 
@@ -180,7 +178,6 @@ def configure_fbom_chain(llm):
     identify any violations of the rules provided. If there are any violations, specify which rule(s) have been violated 
     and provide a brief explanation of the violation. If there are no violations, state that the FBOM report is compliant 
     with the rules provided.
-    Answer clearly and concisely, and provide a brief explanation of the violation if there is one.
     """
     system_message_prompt = SystemMessagePromptTemplate.from_template(template)
     human_template = "{question}"
