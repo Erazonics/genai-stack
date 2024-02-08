@@ -167,9 +167,9 @@ def configure_fbom_chain(llm):
     
     Input: The JSON data will be presented as a text input directly within the environment.
     
-    Expected Output: The output should identify whether the JSON structure is hierarchical as desired. If not, 
+    Output: The output should identify whether the JSON structure is hierarchical as desired. If not, 
     provide a brief explanation identifying which part of the structure deviates from the preferred hierarchical 
-    organization.
+    organization. Only answer the qusetion based on the data provided, do not make up an answer.
     
     Additional context: A Bill of materials (BOM) is considered to be flat when only the materials of an 
     assembly are listed, but not the subparts. This means that only the assembly-level is given, and nit tge 
