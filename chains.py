@@ -1,4 +1,3 @@
-
 from langchain.embeddings import OllamaEmbeddings, OpenAIEmbeddings, SentenceTransformerEmbeddings, BedrockEmbeddings
 from langchain.chat_models import ChatOpenAI, ChatOllama, BedrockChat
 from langchain.vectorstores.neo4j_vector import Neo4jVector
@@ -72,6 +71,67 @@ def configure_llm_only_chain(llm):
     You are a helpful assistant that helps a support agent with answering programming questions.
     If you don't know the answer, just say that you don't know, you must not make up an answer.
     """
+    system_message_prompt = SystemMessagePromptTemplate.from_template(template)
+    human_template = "{question}"
+    human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
+    chat_prompt = ChatPromptTemplate.from_messages(
+        [system_message_prompt, human_message_prompt]
+    )
+
+    def generate_llm_output(
+            user_input: str, callbacks: List[Any], prompt=chat_prompt
+    ) -> str:
+        chain = prompt | llm
+        answer = chain.invoke(
+            {"question": user_input}, config={"callbacks": callbacks}
+        ).content
+        return {"answer": answer}
+
+    return generate_llm_output
+
+
+def configure_homogenous_materials_chain(llm):
+    template = f""" I need your help analyzing an IMDS dataset to ensure compliance with material homogeneity 
+    guidelines. Here's what you need to know:
+
+IMDS Terminology
+
+Components: Physical parts in a product (e.g., a screw, a circuit board). Semi-components: Assemblies of components, 
+forming a larger part (e.g., a car door that includes the handle, window, and inner panel). Materials: Substances 
+used to create components or semi-components (e.g., steel, plastic, paint). Basic Substances: The most granular 
+chemical elements within a material (e.g., iron, carbon within steel). Homogeneity Rule
+
+A material node in IMDS can only have material children if it represents a truly homogeneous material. Materials with 
+layers or coatings are not considered homogeneous.
+
+Examples
+
+homogeneous:
+-material
+    -subcomponent
+        -material
+        -material
+            -material
+            -material
+            
+non-homogeneous:
+-material
+    -subcomponent
+        -material
+    -subcomponent
+        -material
+        -material
+
+Correct: A node representing "aluminum" can have children representing different aluminum alloys, as these are 
+variations of a homogeneous base material. Incorrect: A node representing "steel" cannot have a child node 
+representing "zinc coating," as this implies layering, violating homogeneity. Task
+
+Analyze the following JSON representation of an IMDS dataset. Identify any parent material nodes that incorrectly 
+contain material child nodes, indicating a violation of the homogeneity rule. Expected Output
+
+List of violating parent material nodes: (e.g., "Car Door - Steel Panel")
+Explanation: A brief explanation of why each violation occurs (i.e., presence of layered materials).
+        """
     system_message_prompt = SystemMessagePromptTemplate.from_template(template)
     human_template = "{question}"
     human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
