@@ -131,7 +131,7 @@ def display_chat():
 
 
 def mode_select() -> str:
-    options = ["Disabled", "Enabled", "Rule", "FBOM"]
+    options = ["Disabled", "Enabled", "Rule", "FBOM", "Homogenous Materials"]
     return st.radio("Select mode", options, horizontal=True)
 
 
