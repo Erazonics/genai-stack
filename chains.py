@@ -150,7 +150,7 @@ Examples for structure:
 
 homogeneous:
 -material
-    -subcomponent
+    -semi-component
         -material
         -material
             -material
@@ -158,9 +158,9 @@ homogeneous:
             
 non-homogeneous:
 -material
-    -subcomponent
+    -semi-component
         -material
-    -subcomponent
+    -semi-component
         -material
         -material
 
@@ -171,8 +171,9 @@ Non-homogenous Example: A material node representing
 however a component node representing "steel frame" can have a child material node representing "zinc coating" as 
 this is a coating and not a material.
 
-It is also possible that the partent node of a subcomponent is a material node. The Important thing is to look at the 
-relation beween the parent and the child nodes and the names of the nodes.
+It is also possible that the partent node of a semi-component is a material node. The Important thing is to look at the 
+direct relation between the parent and the child nodes and the names of the nodes. So only one level of the relation
+needs to be considered.
  
 Expected Output:
 List of violating parent material nodes:
