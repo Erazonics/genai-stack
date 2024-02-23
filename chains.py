@@ -164,15 +164,16 @@ non-homogeneous:
         -material
         -material
 
-Correct: A material node representing "aluminum frame" can have children representing different aluminum alloys, as these are 
-variations of a homogeneous base material.
-Incorrect: A material node representing "steel frame" cannot have a child material node 
-representing "zinc coating," as this implies layering, however a component node representing "steel frame" can have a
-child material node representing "zinc coating" as this is a coating and not a material.
+Correct Example: A material node representing "aluminum frame" can have children representing different aluminum 
+alloys, as these are variations of a homogeneous base material.
+Incorrect Example: A material node representing 
+"steel frame" cannot have a child material node representing "zinc coating," as this implies layering, 
+however a component node representing "steel frame" can have a child material node representing "zinc coating" as 
+this is a coating and not a material.
  
 Expected Output:
-List of violating parent material nodes: (e.g., "Car Door - Steel Panel")
-Explanation: A brief explanation of why each violation occurs (i.e., presence of layered materials).
+List of violating parent material nodes:
+Explanation: A brief explanation of why each violation occurs.
         """
     system_message_prompt = SystemMessagePromptTemplate.from_template(template)
     human_template = "{question}"
