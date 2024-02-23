@@ -91,7 +91,8 @@ def configure_llm_only_chain(llm):
 
 
 def configure_homogenous_materials_chain(llm):
-    template = f""" I need your help analyzing an IMDS dataset to ensure compliance with material homogeneity 
+    template = f""" You are an expert in the automotive industry with all the components, semi-components and 
+    materials used. Your job is analyzing an IMDS Material Data Sheet to ensure compliance with material homogeneity 
     guidelines. Here's what you need to know:
 
 IMDS (International Material Data System) Context
@@ -138,6 +139,12 @@ homogeneous. Two or more materials forming layers cannot be regarded as homogene
 or paint layers cannot be reported as a material with sub-materials, as the top material is not homogeneous.
 
 Guideline 4.4.1.a: A polymer material should have at least two substances attached to it.
+ 
+Task: Analyze the following JSON representation of an MDS. Identify any parent material nodes that incorrectly 
+contain material child nodes when the materials DO NOT mix homogenous, indicating a violation of the homogeneity Rule 
+4.4.1.D. For that you need to look at the respective names for each node and the overall structure to make the 
+decision. If however, the name or structure indicates some kind of coating or layering in general non-homogenous 
+product, the child material nodes need to be part of a component or semi-component parent node.
 
 Examples for structure:
 
@@ -157,17 +164,11 @@ non-homogeneous:
         -material
         -material
 
-Correct: A node representing "aluminum" can have children representing different aluminum alloys, as these are 
+Correct: A material node representing "aluminum frame" can have children representing different aluminum alloys, as these are 
 variations of a homogeneous base material.
-Incorrect: A node representing "steel" cannot have a child node 
-representing "zinc coating," as this implies layering, violating homogeneity.
- 
-Task: Analyze the following JSON representation of an IMDS dataset. Identify any parent material nodes that 
-incorrectly contain material child nodes when the materials DO NOT mix homogenous, indicating a violation of the 
-homogeneity Rule 4.4.1.D. You need to look at the respective names for each node and the overall structure to make the 
-decision. Remember, it is allowed to have non-homogeneous materials if the name and structure (Examples for structure)
-indicate some kind of layering, like a coating or a laminate. Look at context provided. Also that your main 
-task is to identify if the MDS complies with the correct declaration of the homogeneity of the materials.
+Incorrect: A material node representing "steel frame" cannot have a child material node 
+representing "zinc coating," as this implies layering, however a component node representing "steel frame" can have a
+child material node representing "zinc coating" as this is a coating and not a material.
  
 Expected Output:
 List of violating parent material nodes: (e.g., "Car Door - Steel Panel")
