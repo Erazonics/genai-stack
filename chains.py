@@ -92,17 +92,52 @@ def configure_llm_only_chain(llm):
 
 def configure_homogenous_materials_chain(llm):
     template = f""" I need your help analyzing an IMDS dataset to ensure compliance with material homogeneity 
-    guidelines. Here's what you need to know:
+    guidelines. Especially Rule 4.4.1.D.  Here's what you need to know:
 
-IMDS Terminology
+IMDS (International Material Data System) Context
 
-Components: Physical parts in a product (e.g., a screw, a circuit board). Semi-components: Assemblies of components, 
-forming a larger part (e.g., a car door that includes the handle, window, and inner panel). Materials: Substances 
-used to create components or semi-components (e.g., steel, plastic, paint). Basic Substances: The most granular 
-chemical elements within a material (e.g., iron, carbon within steel). Homogeneity Rule
+An MDS (Material Data Sheet) is built up as a tree structure following a hierarchical parent/child relationship. Each 
+branching point in the structure is called a node. The higher node is called the “parent” and a node directly 
+attached to the parent is called a “child”.
 
-A material node in IMDS can only have material children if it represents a truly homogeneous material. Materials with 
-layers or coatings are not considered homogeneous.
+Rule 4.1.A: Child nodes of the same parent node must be of the same type (ex. a semi-component parent node may 
+consist of all semi-component child nodes or all material child nodes, but not a mixture of semi-component and 
+material child nodes). A mixture of components with semi-components or materials on the same level is allowed, 
+if the material or semi-component is not an article, but a coat-ing, lubricant or similar, added to the component.
+
+Components: A component is used to represent a single part, a complete assembly or a complete part within an 
+assembly. A complete part on a lower level is usually called a sub-component. A sub-component is described by the 
+same symbol as a component.
+
+Rule 4.2.1.A:A component node must have at least one sub-component, one semi-component or one material child node.
+
+Rule 4.2.1.C: The top node component name must be descriptive.
+
+Semi-components: A semi-component is a semi-finished product (example: steel coil, pipe, leather hide, plated steel) 
+that will go through further process steps (example: cutting, stamping) to make a finished component. A 
+semi-component can contain several materials or semi-components.
+
+Rule 4.3.1.A: A semi-component parent node must have at least one material or one semi-component child node.
+
+Rule 4.3.1.C: The semi-component must be reported in the state which it will have in the finished component. Removal 
+ties, wraps, liners etc. must not be reported.
+
+Rule 4.3.1.E: The top node semi-component name (article name) must be descriptive.
+
+Materials: A material normally consists only of basic substances. In some cases a material can consist of other 
+materials (example: filled thermoplastics consisting of the materials: basic polymer, master batch colour and master 
+batch flame retardant that are processed into a new coloured, flame-retarding, filled thermoplastic compound).
+
+Rule 4.4.1.A: A material parent node must have at least one substance or two material child nodes attached to it.
+
+Rule 4.4.1.B: A material must be described in its end state. Only basic substances con-tained in the final material 
+are to be reported (example: cured adhesives or paint coatings are entered without the evaporating solvents).
+
+Rule 4.4.1.D: If a material parent node has material child nodes, the material represented by the parent node must be 
+homogeneous. Two or more materials forming layers cannot be regarded as homogeneous. Example: Zinc coating on steel 
+or paint layers cannot be reported as a material with sub-materials, as the top material is not homogeneous.
+
+Guideline 4.4.1.a: A polymer material should have at least two substances attached to it.
 
 Examples
 
@@ -123,12 +158,17 @@ non-homogeneous:
         -material
 
 Correct: A node representing "aluminum" can have children representing different aluminum alloys, as these are 
-variations of a homogeneous base material. Incorrect: A node representing "steel" cannot have a child node 
-representing "zinc coating," as this implies layering, violating homogeneity. Task
-
-Analyze the following JSON representation of an IMDS dataset. Identify any parent material nodes that incorrectly 
-contain material child nodes, indicating a violation of the homogeneity rule. Expected Output
-
+variations of a homogeneous base material.
+Incorrect: A node representing "steel" cannot have a child node 
+representing "zinc coating," as this implies layering, violating homogeneity.
+ 
+Task: Analyze the following JSON representation of an IMDS dataset. Identify any parent material nodes that incorrectly 
+contain material child nodes, indicating a violation of the homogeneity Rule 4.4.1.D. Remember, it is allowed to have 
+non-homogeneous materials if the name and structure indicate some kind of layering, like a coating or a laminate. Look
+at context provided. Also remember that your main task is to identify if the MDS complies with the correct declaration
+of the homogeneity of the materials.
+ 
+Expected Output:
 List of violating parent material nodes: (e.g., "Car Door - Steel Panel")
 Explanation: A brief explanation of why each violation occurs (i.e., presence of layered materials).
         """
