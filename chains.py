@@ -92,8 +92,7 @@ def configure_llm_only_chain(llm):
 
 def configure_homogenous_materials_chain(llm):
     template = f""" You are an expert in the automotive industry with all the components, semi-components and 
-    materials used. Your job is analyzing an IMDS Material Data Sheet to ensure compliance with material homogeneity 
-    guidelines. Here's what you need to know:
+    materials used. Your job is analyzing an IMDS Material Data Sheets. Here's what you need to know:
 
 IMDS (International Material Data System) Context
 
@@ -140,11 +139,11 @@ or paint layers cannot be reported as a material with sub-materials, as the top 
 
 Guideline 4.4.1.a: A polymer material should have at least two substances attached to it.
  
-Task: Analyze the following JSON representation of an MDS. Identify any parent material nodes that incorrectly 
-contain material child nodes when the materials DO NOT mix homogenous, indicating a violation of the homogeneity Rule 
-4.4.1.D. For that you need to look at the respective names for each node and the overall structure to make the 
-decision. If however, the name or structure indicates some kind of coating or layering in general non-homogenous 
-product, the child material nodes need to be part of a component or semi-component parent node.
+Task: Analyze the following JSON representation of an MDS. Identify any parent type:material nodes that incorrectly 
+contain type:material child nodes when the materials DO NOT mix homogenous, indicating a violation of the homogeneity 
+Rule 4.4.1.D. To solve that task you need to look at the respective names for each node and the overall structure to 
+make the decision. If however, the name or structure indicates some kind of coating or layering in general 
+non-homogenous product, the child material nodes need to be part of a component or semi-component parent node.
 
 Homogenous Example: A material node representing "aluminum frame" can have children representing different aluminum 
 alloys, as these are variations of a homogeneous base material.
@@ -160,6 +159,7 @@ the relation needs to be considered.
 Expected Output:
 List of violating parent material nodes:
 Explanation: A brief explanation of why each violation occurs.
+Give an confidence score from 1-10 with 1 low and 10 high, indicating how confident you are in your answer. 
         """
     system_message_prompt = SystemMessagePromptTemplate.from_template(template)
     human_template = "{question}"
