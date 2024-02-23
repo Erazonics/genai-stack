@@ -146,24 +146,6 @@ contain material child nodes when the materials DO NOT mix homogenous, indicatin
 decision. If however, the name or structure indicates some kind of coating or layering in general non-homogenous 
 product, the child material nodes need to be part of a component or semi-component parent node.
 
-Examples for structure:
-
-homogeneous:
--material
-    -semi-component
-        -material
-        -material
-            -material
-            -material
-            
-non-homogeneous:
--material
-    -semi-component
-        -material
-    -semi-component
-        -material
-        -material
-
 Homogenous Example: A material node representing "aluminum frame" can have children representing different aluminum 
 alloys, as these are variations of a homogeneous base material.
 Non-homogenous Example: A material node representing 
@@ -171,9 +153,9 @@ Non-homogenous Example: A material node representing
 however a component node representing "steel frame" can have a child material node representing "zinc coating" as 
 this is a coating and not a material.
 
-It is also possible that the partent node of a semi-component is a material node. The Important thing is to look at the 
-direct relation between the parent and the child nodes and the names of the nodes. So only one level of the relation
-needs to be considered.
+It is also possible that the parent node of a semi-component is a material node. The important thing is to look at 
+the direct relation between the parent and the child nodes and the names and types of the nodes. So only one level of 
+the relation needs to be considered.
  
 Expected Output:
 List of violating parent material nodes:
