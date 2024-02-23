@@ -164,12 +164,15 @@ non-homogeneous:
         -material
         -material
 
-Correct Example: A material node representing "aluminum frame" can have children representing different aluminum 
+Homogenous Example: A material node representing "aluminum frame" can have children representing different aluminum 
 alloys, as these are variations of a homogeneous base material.
-Incorrect Example: A material node representing 
+Non-homogenous Example: A material node representing 
 "steel frame" cannot have a child material node representing "zinc coating," as this implies layering, 
 however a component node representing "steel frame" can have a child material node representing "zinc coating" as 
 this is a coating and not a material.
+
+It is also possible that the partent node of a subcomponent is a material node. The Important thing is to look at the 
+relation beween the parent and the child nodes and the names of the nodes.
  
 Expected Output:
 List of violating parent material nodes:
