@@ -1,3 +1,5 @@
+import json
+
 from langchain.embeddings import OllamaEmbeddings, OpenAIEmbeddings, SentenceTransformerEmbeddings, BedrockEmbeddings
 from langchain.chat_models import ChatOpenAI, ChatOllama, BedrockChat
 from langchain.vectorstores.neo4j_vector import Neo4jVector
@@ -103,7 +105,7 @@ attached to the parent is called a “child”.
 Rule 4.1.A: Child nodes of the same parent node must be of the same type (ex. a semi-component parent node may 
 consist of all semi-component child nodes or all material child nodes, but not a mixture of semi-component and 
 material child nodes). A mixture of components with semi-components or materials on the same level is allowed, 
-if the material or semi-component is not an article, but a coat-ing, lubricant or similar, added to the component.
+if the material or semi-component is not an article, but a coating, lubricant or similar, added to the component.
 
 Components: A component is used to represent a single part, a complete assembly or a complete part within an 
 assembly. A complete part on a lower level is usually called a sub-component. A sub-component is described by the 
@@ -138,6 +140,9 @@ homogeneous. Two or more materials forming layers cannot be regarded as homogene
 or paint layers cannot be reported as a material with sub-materials, as the top material is not homogeneous.
 
 Guideline 4.4.1.a: A polymer material should have at least two substances attached to it.
+
+Input: You will get a json and report saying The following nodes need to be inspected: with the ids of the nodes
+where parent nodes are of the type material.
  
 Task: Analyze the following JSON representation of an MDS. Identify any parent nodes of type material that 
 incorrectly contain child nodes of type material when the materials DO NOT mix homogenous, indicating a violation of 
@@ -163,18 +168,32 @@ Explanation: A brief explanation of why each violation occurs.
 Give an confidence score from 1-10 with 1 low and 10 high, indicating how confident you are in your answer. 
         """
     system_message_prompt = SystemMessagePromptTemplate.from_template(template)
-    human_template = "{question}"
+    human_template = "{data}"
     human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
     chat_prompt = ChatPromptTemplate.from_messages(
         [system_message_prompt, human_message_prompt]
     )
 
+    def validate_nodes(node, parent_type=None):
+        violations = []
+        if parent_type == 'material' and node['type'] == 'material':
+            violations.append(node['id'])
+        for child in node['children']:
+            violations.extend(validate_nodes(child, node['type']))
+        return violations
+
     def generate_llm_output(
             user_input: str, callbacks: List[Any], prompt=chat_prompt
     ) -> str:
+        data = json.loads(user_input)
+        violations = []
+        for node in data:
+            violations.extend(validate_nodes(node))
+        if violations:
+            user_input += f"\n\nThe following nodes need to be inspected: {violations}"
         chain = prompt | llm
         answer = chain.invoke(
-            {"question": user_input}, config={"callbacks": callbacks}
+            {"data": user_input}, config={"callbacks": callbacks}
         ).content
         return {"answer": answer}
 
