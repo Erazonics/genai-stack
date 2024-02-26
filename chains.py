@@ -178,7 +178,7 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
         violations = []
         if parent_type == 'material' and node['type'] == 'material':
             violations.append(node['id'])
-        for child in node['children']:
+        for child in node.get('children', []):
             violations.extend(validate_nodes(child, node['type']))
         return violations
 
