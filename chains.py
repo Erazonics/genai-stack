@@ -185,10 +185,14 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
     def generate_llm_output(
             user_input: str, callbacks: List[Any], prompt=chat_prompt
     ) -> str:
-        data = json.dumps(user_input)
+        json_data = json.loads(user_input)
+
         violations = []
-        for node in data:
+        for node in json_data:
             violations.extend(validate_nodes(node))
+
+        user_input = json.dumps(json_data)
+
         if violations:
             user_input += f"\n\nThe following nodes need to be inspected: {violations}"
         chain = prompt | llm
