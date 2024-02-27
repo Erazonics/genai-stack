@@ -220,7 +220,7 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
 
         chain = prompt | llm
         answer = chain.invoke(
-            {"data": extra_context}, config={"callbacks": callbacks}
+            {"data": user_input, "extra_context":extra_context}, config={"callbacks": callbacks}
         ).content
         return {"answer": answer}
 
