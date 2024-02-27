@@ -132,7 +132,7 @@ batch flame retardant that are processed into a new coloured, flame-retarding, f
 
 Rule 4.4.1.A: A material parent node must have at least one substance or two material child nodes attached to it.
 
-Rule 4.4.1.B: A material must be described in its end state. Only basic substances con-tained in the final material 
+Rule 4.4.1.B: A material must be described in its end state. Only basic substances contained in the final material 
 are to be reported (example: cured adhesives or paint coatings are entered without the evaporating solvents).
 
 Rule 4.4.1.D: If a material parent node has material child nodes, the material represented by the parent node must be 
