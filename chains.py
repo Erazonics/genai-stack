@@ -141,16 +141,15 @@ or paint layers cannot be reported as a material with sub-materials, as the top 
 
 Guideline 4.4.1.a: A polymer material should have at least two substances attached to it.
 
-Input: You will get a json with the complete mds and report that shows possible violations of the rule 4.4.1.D. and 
-nodes worth looking at.
+Input: You will get a json with the complete mds and report that shows where parent and child nodes are materials.
  
-Task: Analyze the following JSON representation of an MDS. Identify any parent nodes of type material that 
-incorrectly contain child nodes of type material when the materials DO NOT mix homogenous, indicating a violation of 
-the homogeneity Rule 4.4.1.D. If the mix homogenous it is allowed. To solve that task you need to look at the 
-respective names and types for each node and the overall structure to make the decision. If however, the name or 
-structure indicates some kind of coating or layering in general non-homogenous product, the child nodes of type 
-material need to be part of a component or semi-component parent node. In this case, the homogeneity rule does not 
-apply since the materials do not mix.
+Task: Analyze the following JSON representation of an MDS and the report. Identify any parent nodes of type material 
+that incorrectly contain child nodes of type material when the materials DO NOT mix homogenous, indicating a 
+violation of the homogeneity Rule 4.4.1.D. If they mix homogenous it is allowed. To solve that task you need to look 
+at the respective names and types for each node and the overall structure to make the decision. If however, 
+the name or structure indicates some kind of coating or layering in general non-homogenous product, the child nodes 
+of type material need to be part of a component or semi-component parent node. In this case, the homogeneity rule 
+does not apply since the materials do not mix.
 
 Homogenous Example: A material node representing "aluminum frame" can have children representing different aluminum 
 alloys, as these are variations of a homogeneous base material.
