@@ -217,7 +217,8 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
         )
 
         # Pass the list of violations to the language model
-        extra_context = f"There are {len(violations)} nodes that possibly violate Rule 4.4.1.D. Nodes worth looking at: {violations_str}"
+        extra_context = (f"There are {len(violations)} nodes where the parent node and children node are "
+                         f"materials. These nodes are: {violations_str}")
 
         chain = prompt | llm
         answer = chain.invoke(
