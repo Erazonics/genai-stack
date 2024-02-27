@@ -180,7 +180,7 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
     ) -> str:
         chain = prompt | llm
         answer = chain.invoke(
-            {"question": user_input}, config={"callbacks": callbacks}
+            {"data": user_input}, config={"callbacks": callbacks}
         ).content
         return {"answer": answer}
 
