@@ -174,9 +174,7 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
         [system_message_prompt, human_message_prompt]
     )
 
-    def generate_llm_output(
-            user_input: str, callbacks: List[Any], prompt=chat_prompt
-    ) -> str:
+    def generate_llm_output(user_input: str, callbacks: List[Any], prompt=chat_prompt) -> str:
         if isinstance(user_input, dict):
             data = user_input
         else:
@@ -193,8 +191,14 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
                 # Check if the node has child nodes that are materials
                 for child in node.get('children', []):
                     if 'type' in child and child['type'] == 'material':
-                        # If so, add the node to the list of violations
-                        violations.append(node)
+                        # If so, add the node to the list of violations, including child details
+                        violation_details = {
+                            "parent_id": node['id'],
+                            "parent_name": node['name'],
+                            "child_nodes": [{"id": child['id'], "name": child['name']} for child in
+                                            node.get('children', [])]
+                        }
+                        violations.append(violation_details)
 
             # Recursively check all child nodes
             for child in node.get('children', []):
@@ -203,8 +207,12 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
         # Start the traversal at the root of the JSON tree
         check_node(data)
 
-        # Create a string with the IDs and names of the violating nodes
-        violations_str = ', '.join([f"Node ID: {node['id']}, Node Name: {node['name']}" for node in violations])
+        # Format the violations for output
+        violations_str = '; '.join(
+            [f"Parent Node ID: {violation['parent_id']}, Parent Node Name: {violation['parent_name']}, Child Nodes: " +
+             ', '.join([f"ID: {child['id']}, Name: {child['name']}" for child in violation['child_nodes']])
+             for violation in violations]
+        )
 
         # Pass the list of violations to the language model
         extra_context = f"There are {len(violations)} nodes that possibly violate Rule 4.4.1.D. Nodes worth looking at: {violations_str}"
@@ -214,8 +222,6 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
             {"data": extra_context}, config={"callbacks": callbacks}
         ).content
         return {"answer": answer}
-
-    return generate_llm_output
 
 
 def configure_fbom_chain(llm):
