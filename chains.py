@@ -141,15 +141,15 @@ or paint layers cannot be reported as a material with sub-materials, as the top 
 
 Guideline 4.4.1.a: A polymer material should have at least two substances attached to it.
 
-Input: You will get a json with the complete mds and report that shows where parent and child nodes are materials.
+Input: JSON and a report that shows where parent and child nodes are materials inside the JSON.
  
-Task: Analyze the following JSON representation of an MDS and the report. Identify any parent nodes of type material 
-that incorrectly contain child nodes of type material when the materials DO NOT mix homogenous, indicating a 
-violation of the homogeneity Rule 4.4.1.D. If they mix homogenous it is allowed. To solve that task you need to look 
-at the respective names and types for each node and the overall structure to make the decision. If however, 
-the name or structure indicates some kind of coating or layering in general non-homogenous product, the child nodes 
-of type material need to be part of a component or semi-component parent node. In this case, the homogeneity rule 
-does not apply since the materials do not mix.
+Task: Analyze the following JSON representation of an MDS and the report for it. Identify if the materials from the 
+report DO NOT mix homogenous, indicating a violation of the homogeneity Rule 4.4.1.D. If they mix homogenous it is 
+allowed to have different materials as child nodes for a parent material node. To solve that task you need to look at 
+the respective names and types for each node and figure out if they could mix in any way or not to make the decision. 
+If however, the name indicates some kind of coating or layering in general non-homogenous product, the child nodes of 
+type material need to be part of a component or semi-component parent node. In this case, the homogeneity rule does 
+not apply since the materials do not mix.
 
 Homogenous Example: A material node representing "aluminum frame" can have children representing different aluminum 
 alloys, as these are variations of a homogeneous base material.
@@ -157,10 +157,6 @@ Non-homogenous Example: A material node representing
 "steel frame" cannot have a child material node representing "zinc coating," as this implies layering, 
 however a component node representing "steel frame" can have a child material node representing "zinc coating" as 
 this is a coating and not a material.
-
-It is also possible that the parent node of a semi-component is a material node. The important thing is to look at 
-the direct relation between the parent and the child nodes and the names and types of the nodes. So only one level of 
-the relation needs to be considered.
  
 Expected Output:
 List of violating parent material nodes:
@@ -186,38 +182,40 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
         # List to store nodes that violate Rule 4.4.1.D
         violations = []
 
-        def check_node(node):
+        def check_node(node, parent_material_id=None, parent_material_name=None):
             # Check if the node is a material
-            if 'type' in node and node['type'] == 'material':
-                # Check if the node has child nodes that are materials
-                for child in node.get('children', []):
-                    if 'type' in child and child['type'] == 'material':
-                        # If so, add the node to the list of violations, including child details
-                        violation_details = {
-                            "parent_id": node['id'],
-                            "parent_name": node['name'],
-                            "child_nodes": [{"id": child['id'], "name": child['name']} for child in
-                                            node.get('children', [])]
-                        }
-                        violations.append(violation_details)
+            if node.get('type') == 'material':
+                # If parent is also a material, it violates the rule
+                if parent_material_id is not None:
+                    violations.append({
+                        "parent_id": parent_material_id,
+                        "parent_name": parent_material_name,
+                        "child_id": node['id'],
+                        "child_name": node['name']
+                    })
+
+            # If current node is material, pass its id and name as parent for its children
+            current_parent_id = node['id'] if node.get('type') == 'material' else parent_material_id
+            current_parent_name = node['name'] if node.get('type') == 'material' else parent_material_name
 
             # Recursively check all child nodes
             for child in node.get('children', []):
-                check_node(child)
+                check_node(child, current_parent_id, current_parent_name)
 
         # Start the traversal at the root of the JSON tree
         check_node(data)
 
         # Format the violations for output
-        violations_str = '; '.join(
-            [f"Parent Node ID: {violation['parent_id']}, Parent Node Name: {violation['parent_name']}, Child Nodes: " +
-             ', '.join([f"ID: {child['id']}, Name: {child['name']}" for child in violation['child_nodes']])
-             for violation in violations]
-        )
+        violations_str = '; '.join([
+            f"Parent Node ID: {violation['parent_id']}, Parent Node Name: {violation['parent_name']}, "
+            f"Child ID: {violation['child_id']}, Child Name: {violation['child_name']}"
+            for violation in violations
+        ])
 
         # Pass the list of violations to the language model
-        extra_context = (f"There are {len(violations)} nodes where the parent node and children node are "
-                         f"materials. These nodes are: {violations_str}")
+        extra_context = (
+            f"Report: There are {len(violations)} instances where the parent and child nodes are materials. "
+            f"These violations are: {violations_str}")
 
         chain = prompt | llm
         answer = chain.invoke(
