@@ -174,13 +174,41 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
         [system_message_prompt, human_message_prompt]
     )
 
-
     def generate_llm_output(
             user_input: str, callbacks: List[Any], prompt=chat_prompt
     ) -> str:
+        # Parse the JSON input
+        data = json.loads(user_input)
+
+        # List to store nodes that violate Rule 4.4.1.D
+        violations = []
+
+        # Recursive function to traverse the JSON tree
+        def check_node(node):
+            # Check if the node is a material
+            if node['type'] == 'material':
+                # Check if the node has child nodes that are materials
+                for child in node.get('children', []):
+                    if child['type'] == 'material':
+                        # If so, add the node to the list of violations
+                        violations.append(node)
+
+            # Recursively check all child nodes
+            for child in node.get('children', []):
+                check_node(child)
+
+        # Start the traversal at the root of the JSON tree
+        check_node(data)
+
+        # Create a string with the IDs and names of the violating nodes
+        violations_str = ', '.join([f"Node ID: {node['id']}, Node Name: {node['name']}" for node in violations])
+
+        # Pass the list of violations to the language model
+        extra_context = f"There are {len(violations)} nodes that possibly violate Rule 4.4.1.D. Nodes worth looking at: {violations_str}"
+
         chain = prompt | llm
         answer = chain.invoke(
-            {"data": user_input}, config={"callbacks": callbacks}
+            {"data": user_input, "extra_context": extra_context}, config={"callbacks": callbacks}
         ).content
         return {"answer": answer}
 
