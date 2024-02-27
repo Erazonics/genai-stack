@@ -141,7 +141,8 @@ or paint layers cannot be reported as a material with sub-materials, as the top 
 
 Guideline 4.4.1.a: A polymer material should have at least two substances attached to it.
 
-Input: You will get a report that shows possible violations of the rule 4.4.1.D. and nodes worth looking at. 
+Input: You will get a json with the complete mds and report that shows possible violations of the rule 4.4.1.D. and 
+nodes worth looking at.
  
 Task: Analyze the following JSON representation of an MDS. Identify any parent nodes of type material that 
 incorrectly contain child nodes of type material when the materials DO NOT mix homogenous, indicating a violation of 
@@ -220,7 +221,7 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
 
         chain = prompt | llm
         answer = chain.invoke(
-            {"data": user_input, "extra_context":extra_context}, config={"callbacks": callbacks}
+            {"data": user_input, "extra_context": extra_context}, config={"callbacks": callbacks}
         ).content
         return {"answer": answer}
 
