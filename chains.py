@@ -177,8 +177,11 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
     def generate_llm_output(
             user_input: str, callbacks: List[Any], prompt=chat_prompt
     ) -> str:
-        # Parse the JSON input
-        data = json.loads(user_input)
+        if isinstance(user_input, dict):
+            data = user_input
+        else:
+            # Parse the JSON input
+            data = json.loads(user_input)
 
         # List to store nodes that violate Rule 4.4.1.D
         violations = []
