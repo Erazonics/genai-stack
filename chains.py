@@ -182,23 +182,27 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
             violations.extend(validate_nodes(child, node['type']))
         return violations
 
-    def generate_llm_output(
-            user_input: str, callbacks: List[Any], prompt=chat_prompt
-    ) -> str:
+    def generate_llm_output(user_input: str, callbacks: List[Any], prompt=chat_prompt) -> str:
+        # Assuming user_input is a JSON string.
         json_data = json.loads(user_input)
 
+        # Validate and find violations.
         violations = []
         for node in json_data:
             violations.extend(validate_nodes(node))
 
-        user_input = json.dumps(json_data)
-
+        # Prepare the final message to be passed to the LLM, including any violations found.
         if violations:
-            user_input += f"\n\nThe following nodes need to be inspected: {violations}"
+            final_message = f"{user_input}\n\nThe following nodes need to be inspected: {violations}"
+        else:
+            final_message = user_input
+
+        # Invoke the chain with the final message.
         chain = prompt | llm
         answer = chain.invoke(
-            {"data": user_input}, config={"callbacks": callbacks}
+            {"data": final_message}, config={"callbacks": callbacks}
         ).content
+
         return {"answer": answer}
 
     return generate_llm_output
