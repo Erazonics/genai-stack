@@ -189,10 +189,10 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
         # Recursive function to traverse the JSON tree
         def check_node(node):
             # Check if the node is a material
-            if node['type'] == 'material':
+            if 'type' in node and node['type'] == 'material':
                 # Check if the node has child nodes that are materials
                 for child in node.get('children', []):
-                    if child['type'] == 'material':
+                    if 'type' in child and child['type'] == 'material':
                         # If so, add the node to the list of violations
                         violations.append(node)
 
