@@ -174,7 +174,9 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
         [system_message_prompt, human_message_prompt]
     )
 
-    def generate_llm_output(user_input: str, callbacks: List[Any], prompt=chat_prompt) -> str:
+    def generate_llm_output(
+            user_input: str, callbacks: List[Any], prompt=chat_prompt
+    ) -> str:
         if isinstance(user_input, dict):
             data = user_input
         else:
@@ -184,7 +186,6 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
         # List to store nodes that violate Rule 4.4.1.D
         violations = []
 
-        # Recursive function to traverse the JSON tree
         def check_node(node):
             # Check if the node is a material
             if 'type' in node and node['type'] == 'material':
@@ -222,6 +223,8 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
             {"data": extra_context}, config={"callbacks": callbacks}
         ).content
         return {"answer": answer}
+
+    return generate_llm_output
 
 
 def configure_fbom_chain(llm):
