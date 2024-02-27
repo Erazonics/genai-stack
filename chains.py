@@ -182,28 +182,45 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
             violations.extend(validate_nodes(child, node['type']))
         return violations
 
-    def generate_llm_output(user_input: str, callbacks: List[Any], prompt=chat_prompt) -> str:
-        # Assuming user_input is a JSON string.
-        json_data = json.loads(user_input)
+    def generate_llm_output(user_input: str, callbacks: List[Any], prompt) -> dict:
+        try:
+            # Parse the user input as JSON if it's a string
+            if isinstance(user_input, str):
+                json_data = json.loads(user_input)
+            elif isinstance(user_input, dict):
+                # If user_input is already a dict, use it directly (or handle as needed)
+                json_data = user_input
+            else:
+                raise ValueError("Invalid input type. Must be str or dict.")
 
-        # Validate and find violations.
-        violations = []
-        for node in json_data:
-            violations.extend(validate_nodes(node))
+            # Validate and find violations.
+            violations = []
+            for node in json_data:
+                violations.extend(validate_nodes(node))
 
-        # Prepare the final message to be passed to the LLM, including any violations found.
-        if violations:
-            final_message = f"{user_input}\n\nThe following nodes need to be inspected: {violations}"
-        else:
-            final_message = user_input
+            # Append violation messages if any.
+            if violations:
+                report = f"The following nodes need to be inspected: {violations}"
+                if isinstance(json_data, dict):
+                    json_data['violations'] = report
+                    final_message = json.dumps(json_data)
+                else:
+                    final_message = f"{user_input}\n\n{report}"
+            else:
+                final_message = user_input if isinstance(user_input, str) else json.dumps(json_data)
 
-        # Invoke the chain with the final message.
-        chain = prompt | llm
-        answer = chain.invoke(
-            {"data": final_message}, config={"callbacks": callbacks}
-        ).content
+            # Invoke the chain with the final message.
+            chain = prompt | llm
+            answer = chain.invoke(
+                {"data": final_message}, config={"callbacks": callbacks}
+            ).content
 
-        return {"answer": answer}
+            return {"answer": answer}
+
+        except json.JSONDecodeError:
+            return {"error": "Failed to decode JSON. Ensure input is a valid JSON string."}
+        except ValueError as e:
+            return {"error": str(e)}
 
     return generate_llm_output
 
