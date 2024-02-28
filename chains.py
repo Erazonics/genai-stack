@@ -139,13 +139,13 @@ Guideline 4.4.1.a: A polymer material should have at least two substances attach
 
 Input: JSON and a report that shows where parent and child nodes are materials inside the JSON.
  
-Task: Analyze the following JSON representation of an MDS and the report for it. Identify if the children material 
-nodes from the report DO NOT mix homogenous. If they mix homogenous it is allowed to have different materials as 
-child nodes for a parent material node. To solve that task you need to look at the respective names and types for 
-each node and figure out if they could mix in any way or not to make the decision. If however, the name indicates 
-some kind of coating or layering in general non-homogenous product, the child nodes of type material need to be part 
-of a component or semi-component parent node. In this case, the homogeneity rule does not apply since the materials 
-do not mix.
+Task: Analyze the following JSON representation of an MDS and the report for it. Identify whether or not the child 
+material nodes from the report can mix homogenous to the parent material node. If they can't mix it is not allowed to 
+have this representation. To solve that task you need to look at the respective names and types for each node and 
+figure out if they could mix in any way or not to make the decision. If however, the name indicates some kind of 
+coating or layering in general a non-homogenous product, the child nodes of type material need to be part of a 
+component or semi-component parent node. In this case, the homogeneity rule does not apply since the materials do not 
+mix.
 
 Homogenous Example: Scenario: Imagine a material node representing an "Aluminum Alloy Frame." This node can have 
 child material nodes representing "Aluminum Alloy 6061" and "Aluminum Alloy 7075."
