@@ -147,11 +147,27 @@ some kind of coating or layering in general non-homogenous product, the child no
 of a component or semi-component parent node. In this case, the homogeneity rule does not apply since the materials 
 do not mix.
 
-Homogenous Example: A material node representing "aluminum frame" can have children material nodes representing 
-different aluminum alloys, as these are variations of a homogeneous base material. Non-homogenous Example: A material 
-node representing "steel frame" cannot have a child material node representing "zinc coating," as this implies 
-layering, however a component node representing "steel frame" can have a child material node representing "zinc 
-coating" as this coating is part of a component.
+Homogenous Example: Scenario: Imagine a material node representing an "Aluminum Alloy Frame." This node can have 
+child material nodes representing "Aluminum Alloy 6061" and "Aluminum Alloy 7075."
+
+Explanation: Both "Aluminum Alloy 6061" and "Aluminum Alloy 7075" are variations of the base material aluminum alloy. 
+They can mix homogeneously because they are made from the same base material (aluminum) but differ in their alloy 
+composition and properties. This is allowed because they are variations of a homogeneous base material, 
+thus complying with the guidelines that permit different materials as child nodes for a parent material node when 
+they mix homogeneously.
+
+Non-Homogenous Example: Scenario: A material node representing a "Plastic Encased Electronic Component." This node 
+cannot have a child material node representing "Silicon Semiconductor" and another representing "Polyethylene Plastic 
+Casing" as direct children under the same parent material node.
+
+Explanation: The "Silicon Semiconductor" and "Polyethylene Plastic Casing" represent materials that do not mix 
+homogeneously; one is a semiconductor material, and the other is a plastic material. This structure implies a 
+non-homogenous mix of materials that serve different functions within the electronic component, violating the rule 
+against having non-homogenous materials directly under the same parent material node. Instead, the "Silicon 
+Semiconductor" should be part of a component or semi-component node that represents the functional electronic part, 
+while the "Polyethylene Plastic Casing" could be another component or semi-component node representing the casing. 
+This separation respects the rule that materials that do not mix homogeneously need to be part of distinct components 
+or semi-components.
  
 Expected Output:
 List of violating parent material nodes:
@@ -210,7 +226,7 @@ Give an confidence score from 1-10 with 1 low and 10 high, indicating how confid
         # Pass the list of violations to the language model
         extra_context = (
             f"Report: There are {len(violations)} instances where the parent and child nodes are materials. "
-            f"These violations are: {violations_str}")
+            f"These nodes are: {violations_str}")
 
         chain = prompt | llm
         answer = chain.invoke(
