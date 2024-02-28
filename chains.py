@@ -147,12 +147,11 @@ some kind of coating or layering in general non-homogenous product, the child no
 of a component or semi-component parent node. In this case, the homogeneity rule does not apply since the materials 
 do not mix.
 
-Homogenous Example: A material node representing "aluminum frame" can have children representing different aluminum 
-alloys, as these are variations of a homogeneous base material.
-Non-homogenous Example: A material node representing 
-"steel frame" cannot have a child material node representing "zinc coating," as this implies layering, 
-however a component node representing "steel frame" can have a child material node representing "zinc coating" as 
-this is a coating and not a material.
+Homogenous Example: A material node representing "aluminum frame" can have children material nodes representing 
+different aluminum alloys, as these are variations of a homogeneous base material. Non-homogenous Example: A material 
+node representing "steel frame" cannot have a child material node representing "zinc coating," as this implies 
+layering, however a component node representing "steel frame" can have a child material node representing "zinc 
+coating" as this coating is part of a component.
  
 Expected Output:
 List of violating parent material nodes:
