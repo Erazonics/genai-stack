@@ -135,21 +135,17 @@ Rule 4.4.1.A: A material parent node must have at least one substance or two mat
 Rule 4.4.1.B: A material must be described in its end state. Only basic substances contained in the final material 
 are to be reported (example: cured adhesives or paint coatings are entered without the evaporating solvents).
 
-Rule 4.4.1.D: If a material parent node has material child nodes, the material represented by the parent node must be 
-homogeneous. Two or more materials forming layers cannot be regarded as homogeneous. Example: Zinc coating on steel 
-or paint layers cannot be reported as a material with sub-materials, as the top material is not homogeneous.
-
 Guideline 4.4.1.a: A polymer material should have at least two substances attached to it.
 
 Input: JSON and a report that shows where parent and child nodes are materials inside the JSON.
  
-Task: Analyze the following JSON representation of an MDS and the report for it. Identify if the materials from the 
-report DO NOT mix homogenous, indicating a violation of the homogeneity Rule 4.4.1.D. If they mix homogenous it is 
-allowed to have different materials as child nodes for a parent material node. To solve that task you need to look at 
-the respective names and types for each node and figure out if they could mix in any way or not to make the decision. 
-If however, the name indicates some kind of coating or layering in general non-homogenous product, the child nodes of 
-type material need to be part of a component or semi-component parent node. In this case, the homogeneity rule does 
-not apply since the materials do not mix.
+Task: Analyze the following JSON representation of an MDS and the report for it. Identify if the children material 
+nodes from the report DO NOT mix homogenous. If they mix homogenous it is allowed to have different materials as 
+child nodes for a parent material node. To solve that task you need to look at the respective names and types for 
+each node and figure out if they could mix in any way or not to make the decision. If however, the name indicates 
+some kind of coating or layering in general non-homogenous product, the child nodes of type material need to be part 
+of a component or semi-component parent node. In this case, the homogeneity rule does not apply since the materials 
+do not mix.
 
 Homogenous Example: A material node representing "aluminum frame" can have children representing different aluminum 
 alloys, as these are variations of a homogeneous base material.
